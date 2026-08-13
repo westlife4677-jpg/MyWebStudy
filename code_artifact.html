@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 신나는 랜덤 모둠 편성기 🎈</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #f3e8ff 50%, #fce7f3 100%);
+      color: #2d3748;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 980px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      padding: 36px 28px;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(100, 116, 139, 0.12);
+      border: 3px solid #ffffff;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(45deg, #2563eb, #7c3aed, #db2777);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .file-dropzone {
+      border: 3px dashed #93c5fd;
+      background-color: #f0f9ff;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .file-dropzone:hover, .file-dropzone.dragover {
+      background-color: #e0f2fe;
+      border-color: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .file-dropzone-icon { font-size: 1.8rem; }
+    .file-dropzone-text { font-size: 0.98rem; font-weight: 700; color: #1e40af; }
+    .file-dropzone-sub { font-size: 0.82rem; color: #64748b; }
+    #fileInput { display: none; }
+
+    .smart-input-box {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .smart-input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .btn-small {
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .btn-small:hover {
+      background: #2563eb;
+    }
+
+    .classifier-panel {
+      display: none;
+      background: #ffffff;
+      border: 2px solid #93c5fd;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .classifier-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #1e3a8a;
+      margin-bottom: 10px;
+    }
+
+    .student-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      border: 2px solid transparent;
+    }
+
+    .chip-male {
+      background-color: #dbeafe;
+      color: #1e40af;
+      border-color: #93c5fd;
+    }
+
+    .chip-female {
+      background-color: #fce7f3;
+      color: #be185d;
+      border-color: #fbcfe8;
+    }
+
+    .gender-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .gender-box {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px solid #cbd5e1;
+    }
+
+    .section-label {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .badge-count {
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+      background: #3b82f6;
+      color: white;
+    }
+
+    .badge-total {
+      background: #7c3aed;
+      color: white;
+      font-size: 0.9rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 110px;
+      padding: 12px;
+      font-size: 0.98rem;
+      line-height: 1.5;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s;
+      background: #ffffff;
+    }
+
+    textarea:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .conditions-box {
+      background: #ffffff;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .conditions-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #475569;
+    }
+
+    .condition-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .condition-group label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #475569;
+    }
+
+    .condition-input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .controls {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #f1f5f9;
+      padding: 16px;
+      border-radius: 16px;
+    }
+
+    .count-setting {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      padding: 8px 16px;
+      border-radius: 12px;
+    }
+
+    .count-setting label {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .btn-step {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    input[type="number"] {
+      width: 46px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border: none;
+      text-align: center;
+      outline: none;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .btn {
+      padding: 14px 20px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      flex: 2;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-print {
+      background: #475569;
+      color: white;
+      flex: 1;
+    }
+
+    .alert-banner {
+      display: none;
+      background-color: #fef2f2;
+      border: 2px solid #fca5a5;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .loading-overlay {
+      display: none;
+      text-align: center;
+      padding: 30px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #4f46e5;
+    }
+
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .group-card {
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+      border: 3px solid #ffffff;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .theme-0 { background: #eff6ff; border-color: #bfdbfe; }
+    .theme-1 { background: #f0fdf4; border-color: #bbf7d0; }
+    .theme-2 { background: #faf5ff; border-color: #e9d5ff; }
+    .theme-3 { background: #fff7ed; border-color: #fed7aa; }
+    .theme-4 { background: #fdf2f8; border-color: #fbcfe8; }
+    .theme-5 { background: #f0fdfa; border-color: #99f6e4; }
+
+    .group-title {
+      font-size: 1.3rem;
+      font-weight: 900;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+      border-bottom: 2px dashed rgba(0,0,0,0.1);
+    }
+
+    .member-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .member-item {
+      background: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-left: 4px solid #8b5cf6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    .member-item.is-leader {
+      background: #fef3c7;
+      border-left-color: #f59e0b;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.2);
+    }
+
+    .leader-badge {
+      font-size: 0.8rem;
+      background: #f59e0b;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .gender-icon {
+      margin-right: 6px;
+      font-size: 1.1rem;
+    }
+
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes popIn { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .container { box-shadow: none; padding: 0; max-width: 100%; border: none; }
+      .header p, .input-section, .controls, .alert-banner, .file-dropzone { display: none !important; }
+      .groups-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .group-card { break-inside: avoid; border: 2px solid #cbd5e1 !important; background: white !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h1>🎲 신나는 랜덤 모둠 편성기 🎈</h1>
+      <p>명단을 입력하면 비율을 맞춰 공정하게 모둠을 짜 줍니다!</p>
+    </div>
+
+    <div class="input-section">
+      <div class="file-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <span class="file-dropzone-icon">📁</span>
+        <span class="file-dropzone-text">엑셀(.csv) 또는 텍스트(.txt) 파일 불러오기</span>
+        <span class="file-dropzone-sub">성별이 명시된 엑셀/텍스트 파일도 자동으로 구분하여 읽어옵니다.</span>
+        <input type="file" id="fileInput" accept=".csv, .txt, .tsv" onchange="handleFileSelect(event)">
+      </div>
+
+      <div class="smart-input-box">
+        <div class="smart-input-header">
+          <span>📋 통합 명단 한 번에 붙여넣기 (선택)</span>
+          <button class="btn-small" onclick="processCombinedList()">⚡ 성별 자동/빠른 구분하기</button>
+        </div>
+        <textarea id="combinedInput" placeholder="이름을 한 줄씩 붙여넣으세요.&#10;예: 김철수(남), 이영희(여) 또는 일반 이름 명단..." style="height: 70px;"></textarea>
+        
+        <div id="classifierPanel" class="classifier-panel">
+          <div class="classifier-title">💡 클릭하여 학생 성별을 정해주세요 (클릭할 때마다 👦남 / 👧여 변경)</div>
+          <div id="studentChips" class="student-chips-grid"></div>
+          <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
+            <button class="btn-small" style="background:#64748b;" onclick="autoAssignHalfHalf()">👦/👧 반반 자동 배분</button>
+            <button class="btn-small" style="background:#16a34a;" onclick="applyClassifiedList()">✅ 명단 반영 완료</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: right; margin-bottom: -10px;">
+        <span class="badge-total" id="totalCountBadge">총 0명</span>
+      </div>
+
+      <div class="gender-inputs-grid">
+        <div class="gender-box">
+          <div class="section-label">
+            <span>👦 명단 A (남학생)</span>
+            <span class="badge-count" id="maleCountBadge">0명</span>
+          </div>
+          <textarea id="maleInput" placeholder="김철수&#10;박민수..." oninput="updateStudentCount()"></textarea>
+        </div>
+
+        <div class="gender-box">
+          <div class="section-label">
+            <span>👧 명단 B (여학생)</span>
+            <span class="badge-count" id="femaleCountBadge">0명</span>
+          </div>
+          <textarea id="femaleInput" placeholder="이영희&#10;정수진..." oninput="updateStudentCount()"></textarea>
+        </div>
+      </div>
+
+      <div class="conditions-box">
+        <div class="conditions-title">⚙️ 특별 조건 설정 (선택 사항)</div>
+        <div class="condition-group">
+          <label for="sameGroupInput">🔗 꼭 같은 모둠에 붙일 학생:</label>
+          <input type="text" id="sameGroupInput" class="condition-input" placeholder="예: 김철수, 이영희 (쉼표로 구분)">
+        </div>
+        <div class="condition-group">
+          <label for="diffGroupInput">⚡ 꼭 다른 모둠으로 떼어놓을 학생:</label>
+          <input type="text" id="diffGroupInput" class="condition-input" placeholder="예: 박민수, 정수진 (쉼표로 구분)">
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="count-setting">
+          <label for="groupCount">모둠 수:</label>
+          <button class="btn-step" onclick="adjustGroupCount(-1)">-</button>
+          <input type="number" id="groupCount" min="1" value="4">
+          <button class="btn-step" onclick="adjustGroupCount(1)">+</button>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-main" onclick="startGenerateWithAnimation()">
+            <span>🎉 공정하게 모둠 짜기!</span>
+          </button>
+          <button class="btn btn-print" onclick="window.print()">
+            <span>🖨️ 인쇄하기</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="alertBanner" class="alert-banner"></div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+      <div style="font-size: 2.8rem; animation: spin 0.8s infinite linear; margin-bottom: 8px;">🎲</div>
+      <div>공정하게 비율을 맞춰 모둠을 섞는 중입니다...</div>
+    </div>
+
+    <div id="resultContainer" class="groups-grid"></div>
+  </div>
+
+  <script>
+    let tempClassifiedStudents = [];
+
+    function parseNames(text) {
+      if (!text) return [];
+      return text.split('\n')
+        .map(n => n.trim())
+        .filter(n => n.length > 0);
+    }
+
+    function updateStudentCount() {
+      const males = parseNames(document.getElementById('maleInput').value);
+      const females = parseNames(document.getElementById('femaleInput').value);
+
+      document.getElementById('maleCountBadge').textContent = `${males.length}명`;
+      document.getElementById('femaleCountBadge').textContent = `${females.length}명`;
+      document.getElementById('totalCountBadge').textContent = `총 ${males.length + females.length}명`;
+    }
+
+    function adjustGroupCount(delta) {
+      const input = document.getElementById('groupCount');
+      let val = parseInt(input.value, 10) || 1;
+      val = Math.max(1, val + delta);
+      input.value = val;
+    }
+
+    function processCombinedList() {
+      const text = document.getElementById('combinedInput').value.trim();
+      if (!text) {
+        showMessage('통합 명단을 입력 창에 먼저 붙여넣어 주세요.');
+        return;
+      }
+
+      hideMessage();
+      const lines = text.split('\n');
+      const males = [];
+      const females = [];
+      tempClassifiedStudents = [];
+
+      lines.forEach(line => {
+        let trimmed = line.trim();
+        if (!trimmed) return;
+
+        // 번호 태그 제거 (예: 1번, 1., 1) )
+        trimmed = trimmed.replace(/^(\d+[\.\)\번]?\s*)/, '');
+
+        let gender = null;
+        let cleanName = trimmed;
+
+        // 정확한 성별 괄호/구분자 매칭 (이름 내부 글자 '남', '여' 보존)
+        if (/[\(\[\{\,\t\/\s](여|여자|여학생|F|Female)[\)\]\}]?$/i.test(trimmed) || /^(여|여자|여학생)[\s\:\,-]/i.test(trimmed)) {
+          gender = 'female';
+          cleanName = trimmed.replace(/[\(\[\{\,\t\/\s](여|여자|여학생|F|Female)[\)\]\}]?$/i, '').replace(/^(여|여자|여학생)[\s\:\,-]/i, '').trim();
+        } else if (/[\(\[\{\,\t\/\s](남|남자|남학생|M|Male)[\)\]\}]?$/i.test(trimmed) || /^(남|남자|남학생)[\s\:\,-]/i.test(trimmed)) {
+          gender = 'male';
+          cleanName = trimmed.replace(/[\(\[\{\,\t\/\s](남|남자|남학생|M|Male)[\)\]\}]?$/i, '').replace(/^(남|남자|남학생)[\s\:\,-]/i, '').trim();
+        }
+
+        if (!cleanName) cleanName = trimmed;
+
+        if (gender === 'female') {
+          females.push(cleanName);
+        } else if (gender === 'male') {
+          males.push(cleanName);
+        } else {
+          // 성별 지정이 없는 명단은 기본 남자 설정 후 수동 지정 패널 제공
+          tempClassifiedStudents.push({ name: cleanName, gender: 'male' });
+        }
+      });
+
+      if (males.length > 0 || females.length > 0) {
+        const existingMales = parseNames(document.getElementById('maleInput').value);
+        const existingFemales = parseNames(document.getElementById('femaleInput').value);
+        document.getElementById('maleInput').value = [...existingMales, ...males].join('\n');
+        document.getElementById('femaleInput').value = [...existingFemales, ...females].join('\n');
+        updateStudentCount();
+      }
+
+      if (tempClassifiedStudents.length > 0) {
+        renderClassifierChips();
+        document.getElementById('classifierPanel').style.display = 'block';
+      } else {
+        document.getElementById('classifierPanel').style.display = 'none';
+        document.getElementById('combinedInput').value = '';
+      }
+    }
+
+    function renderClassifierChips() {
+      const container = document.getElementById('studentChips');
+      container.innerHTML = '';
+      tempClassifiedStudents.forEach((student) => {
+        const chip = document.createElement('div');
+        chip.className = `chip ${student.gender === 'male' ? 'chip-male' : 'chip-female'}`;
+        chip.innerHTML = `${student.gender === 'male' ? '👦' : '👧'} ${student.name}`;
+        chip.onclick = () => {
+          student.gender = student.gender === 'male' ? 'female' : 'male';
+          renderClassifierChips();
+        };
+        container.appendChild(chip);
+      });
+    }
+
+    function autoAssignHalfHalf() {
+      tempClassifiedStudents.forEach((student, idx) => {
+        student.gender = idx % 2 === 0 ? 'male' : 'female';
+      });
+      renderClassifierChips();
+    }
+
+    function applyClassifiedList() {
+      if (tempClassifiedStudents.length === 0) return;
+
+      const males = parseNames(document.getElementById('maleInput').value);
+      const females = parseNames(document.getElementById('femaleInput').value);
+
+      tempClassifiedStudents.forEach(student => {
+        if (student.gender === 'male') males.push(student.name);
+        else females.push(student.name);
+      });
+
+      document.getElementById('maleInput').value = males.join('\n');
+      document.getElementById('femaleInput').value = females.join('\n');
+      updateStudentCount();
+
+      document.getElementById('classifierPanel').style.display = 'none';
+      document.getElementById('combinedInput').value = '';
+      tempClassifiedStudents = [];
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      processFile(file);
+    }
+
+    function processFile(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const lines = content.split(/\r?\n/);
+        
+        const extractedMales = [];
+        const extractedFemales = [];
+
+        lines.forEach(line => {
+          const parts = line.split(/,|\t/).map(p => p.replace(/["']/g, '').trim());
+          if (parts.length >= 2) {
+            const name = parts[0];
+            const gender = parts[1];
+            if (name && name !== '이름' && name !== '성명') {
+              if (gender.includes('여') || gender.toUpperCase() === 'F' || gender === '여자') {
+                extractedFemales.push(name);
+              } else {
+                extractedMales.push(name);
+              }
+            }
+          } else if (parts[0] && parts[0] !== '이름') {
+            extractedMales.push(parts[0]);
+          }
+        });
+
+        if (extractedMales.length > 0 || extractedFemales.length > 0) {
+          const existingMales = parseNames(document.getElementById('maleInput').value);
+          const existingFemales = parseNames(document.getElementById('femaleInput').value);
+          document.getElementById('maleInput').value = [...existingMales, ...extractedMales].join('\n');
+          document.getElementById('femaleInput').value = [...existingFemales, ...extractedFemales].join('\n');
+          updateStudentCount();
+        } else {
+          showMessage('파일에서 학생 이름을 찾을 수 없습니다.');
+        }
+      };
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    const dropzone = document.getElementById('dropzone');
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) processFile(files[0]);
+    });
+
+    function showMessage(msg) {
+      const banner = document.getElementById('alertBanner');
+      banner.textContent = msg;
+      banner.style.display = 'block';
+    }
+
+    function hideMessage() {
+      const banner = document.getElementById('alertBanner');
+      banner.style.display = 'none';
+      banner.textContent = '';
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function parseRules(inputText) {
+      if (!inputText || !inputText.trim()) return [];
+      const lines = inputText.split('\n');
+      const rules = [];
+      lines.forEach(line => {
+        const members = line.split(',').map(m => m.trim()).filter(m => m.length > 0);
+        if (members.length > 1) rules.push(members);
+      });
+      return rules;
+    }
+
+    function checkValidity(groups, sameRules, diffRules) {
+      const studentMap = {};
+      groups.forEach((group, groupIdx) => {
+        group.forEach(student => {
+          studentMap[student.name] = groupIdx;
+        });
+      });
+
+      for (const rule of sameRules) {
+        const existingMembers = rule.filter(name => studentMap.hasOwnProperty(name));
+        if (existingMembers.length > 1) {
+          const targetGroupIdx = studentMap[existingMembers[0]];
+          for (let i = 1; i < existingMembers.length; i++) {
+            if (studentMap[existingMembers[i]] !== targetGroupIdx) return false;
+          }
+        }
+      }
+
+      for (const rule of diffRules) {
+        const existingMembers = rule.filter(name => studentMap.hasOwnProperty(name));
+        if (existingMembers.length > 1) {
+          const groupIndices = existingMembers.map(m => studentMap[m]);
+          const uniqueIndices = new Set(groupIndices);
+          if (uniqueIndices.size < groupIndices.length) return false;
+        }
+      }
+
+      return true;
+    }
+
+    function startGenerateWithAnimation() {
+      hideMessage();
+
+      // 미처 '명단 반영 완료' 버튼을 누르지 않은 성별 분류 항목이 있다면 자동 반영
+      if (tempClassifiedStudents.length > 0) {
+        applyClassifiedList();
+      }
+
+      const males = parseNames(document.getElementById('maleInput').value).map(name => ({ name, gender: 'male' }));
+      const females = parseNames(document.getElementById('femaleInput').value).map(name => ({ name, gender: 'female' }));
+      const groupCount = parseInt(document.getElementById('groupCount').value, 10);
+      const resultContainer = document.getElementById('resultContainer');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+
+      resultContainer.innerHTML = '';
+      const totalStudents = males.length + females.length;
+
+      if (totalStudents === 0) {
+        showMessage('학생 이름을 입력해 주세요.');
+        return;
+      }
+
+      if (isNaN(groupCount) || groupCount < 1) {
+        showMessage('올바른 모둠 수를 입력해 주세요.');
+        return;
+      }
+
+      if (groupCount > totalStudents) {
+        showMessage('모둠 수가 전체 학생 수보다 많을 수 없습니다.');
+        return;
+      }
+
+      const sameRules = parseRules(document.getElementById('sameGroupInput').value);
+      const diffRules = parseRules(document.getElementById('diffGroupInput').value);
+
+      let finalGroups = null;
+      const maxAttempts = 2000;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        // 1. 각 모둠별 목표 인원수(용량) 계산 (예: 30명 6모둠 -> 모두 5명씩)
+        const baseCap = Math.floor(totalStudents / groupCount);
+        const remainder = totalStudents % groupCount;
+        const capacities = Array(groupCount).fill(baseCap);
+        
+        // 나머지가 있을 경우 모둠들에 1명씩 균등 추가
+        const extraIndices = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+        for (let i = 0; i < remainder; i++) {
+          capacities[extraIndices[i]]++;
+        }
+
+        // 2. 남학생 배치 목표량 계산
+        const maleBase = Math.floor(males.length / groupCount);
+        const maleRemainder = males.length % groupCount;
+        const maleTargets = Array(groupCount).fill(maleBase);
+        const maleExtraIndices = shuffle(Array.from({ length: groupCount }, (_, i) => i));
+        for (let i = 0; i < maleRemainder; i++) {
+          maleTargets[maleExtraIndices[i]]++;
+        }
+
+        const tempGroups = Array.from({ length: groupCount }, () => []);
+        const shuffledMales = shuffle([...males]);
+        const shuffledFemales = shuffle([...females]);
+
+        // 3. 남학생 먼저 각 모둠 용량 내에서 균등 배분
+        let maleIdx = 0;
+        for (let g = 0; g < groupCount; g++) {
+          const countToTake = Math.min(maleTargets[g], capacities[g]);
+          for (let k = 0; k < countToTake; k++) {
+            if (maleIdx < shuffledMales.length) {
+              tempGroups[g].push(shuffledMales[maleIdx++]);
+            }
+          }
+        }
+
+        // 남은 남학생 처리
+        while (maleIdx < shuffledMales.length) {
+          const g = tempGroups.findIndex((grp, idx) => grp.length < capacities[idx]);
+          if (g !== -1) tempGroups[g].push(shuffledMales[maleIdx++]);
+          else break;
+        }
+
+        // 4. 남은 모둠 빈자리를 여학생으로 완벽히 채움
+        let femaleIdx = 0;
+        for (let g = 0; g < groupCount; g++) {
+          while (tempGroups[g].length < capacities[g] && femaleIdx < shuffledFemales.length) {
+            tempGroups[g].push(shuffledFemales[femaleIdx++]);
+          }
+        }
+
+        if (checkValidity(tempGroups, sameRules, diffRules)) {
+          finalGroups = tempGroups;
+          break;
+        }
+      }
+
+      if (!finalGroups) {
+        showMessage('조건을 동시에 만족하는 모둠을 생성하지 못했습니다. 조건이나 모둠 수를 조절해 보세요.');
+        return;
+      }
+
+      loadingOverlay.style.display = 'block';
+
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+
+        const groupEmojis = ['⭐', '🚀', '🍀', '🎈', '💎', '🔥', '🌈', '🦁', '🐬', '🐥'];
+
+        finalGroups.forEach((group, index) => {
+          const groupCard = document.createElement('div');
+          const themeIndex = index % 6;
+          groupCard.className = `group-card theme-${themeIndex}`;
+          groupCard.style.animationDelay = `${index * 0.1}s`;
+
+          const groupTitle = document.createElement('div');
+          groupTitle.className = 'group-title';
+          const emoji = groupEmojis[index % groupEmojis.length];
+
+          groupTitle.innerHTML = `${emoji} ${index + 1}모둠 (${group.length}명)`;
+
+          const memberList = document.createElement('ul');
+          memberList.className = 'member-list';
+
+          // 모둠 내부 시각적 무작위 정렬
+          const shuffledGroup = shuffle([...group]);
+          // 무작위로 1명의 모둠장 지정
+          const leaderIndex = Math.floor(Math.random() * shuffledGroup.length);
+
+          shuffledGroup.forEach((member, mIdx) => {
+            const isLeader = (mIdx === leaderIndex);
+            const memberItem = document.createElement('li');
+            memberItem.className = `member-item ${isLeader ? 'is-leader' : ''}`;
+            
+            const genderIcon = member.gender === 'male' ? '👦' : '👧';
+            const leaderTag = isLeader ? '<span class="leader-badge">👑 모둠장</span>' : '';
+
+            memberItem.innerHTML = `
+              <span><span class="gender-icon">${genderIcon}</span>${member.name}</span>
+              ${leaderTag}
+            `;
+            memberList.appendChild(memberItem);
+          });
+
+          groupCard.appendChild(groupTitle);
+          groupCard.appendChild(memberList);
+          resultContainer.appendChild(groupCard);
+        });
+      }, 500);
+    }
+  </script>
+</body>
+</html>
